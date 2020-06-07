@@ -38,15 +38,16 @@ func (k Keeper) Delegate(ctx sdk.Context, vendorID, postID uint64, delAddr sdk.A
 	return nil
 }
 
-func (k Keeper) Undelegate(ctx sdk.Context, endTime time.Time, vendorID, postID, stakeID uint64) error {
+func (k Keeper) Undelegate(ctx sdk.Context, endTime time.Time,
+	vendorID, postID, stakeID uint64) (delegation staking.Delegation, err error) {
+
 	d := k.getDelegation(ctx, endTime, vendorID, postID, stakeID)
-	// TODO [shanev]: can possibly replace this with Unbond and have less restrictions; investigate.
-	_, err := k.stakingKeeper.Undelegate(ctx, d.DelegatorAddress, d.ValidatorAddress, d.Shares)
+	_, err = k.stakingKeeper.Undelegate(ctx, d.DelegatorAddress, d.ValidatorAddress, d.Shares)
 	if err != nil {
-		return err
+		return d, err
 	}
 
-	return nil
+	return d, nil
 }
 
 func (k Keeper) getDelegation(ctx sdk.Context, endTime time.Time, vendorID, postID, stakeID uint64) staking.Delegation {

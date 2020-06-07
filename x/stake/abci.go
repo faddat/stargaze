@@ -29,9 +29,14 @@ func EndBlocker(ctx sdk.Context, k Keeper) {
 	endTime := ctx.BlockTime()
 	k.IterateVotingDelegationQueue(ctx, endTime, func(endTime time.Time, vendorID, postID, stakeID uint64, delegation stakingtypes.Delegation) bool {
 		// undelegate from validator
-		k.Undelegate(ctx, endTime, vendorID, postID, stakeID)
+		delegation, err := k.Undelegate(ctx, endTime, vendorID, postID, stakeID)
+		if err != nil {
+			panic(err)
+		}
 
 		// add funds from reward pool based on stake amount + time
+		// TODO: calculate amount from shares?
+		stakeAmount := delegation.Shares
 
 		k.RemoveFromVotingDelegationQueue(ctx, endTime, vendorID, postID, stakeID)
 
