@@ -52,3 +52,9 @@ type BankKeeper interface {
 	SendCoinsFromModuleToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
 	SendCoinsFromAccountToModule(ctx sdk.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) error
 }
+
+type DelegationI interface {
+	GetDelegatorAddr() sdk.AccAddress // delegator sdk.AccAddress for the bond
+	GetValidatorAddr() sdk.ValAddress // validator operator address
+	GetShares() sdk.Dec               // amount of validator's shares held in this delegation
+}

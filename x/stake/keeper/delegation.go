@@ -5,7 +5,7 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/rocket-protocol/stakebird/x/stake/types"
 )
@@ -26,7 +26,7 @@ func (k Keeper) Delegate(ctx sdk.Context, vendorID, postID uint64, delAddr sdk.A
 
 	// add delegation to voting delegation queue
 	shares := amount.Amount.ToDec()
-	delegation := stakingtypes.NewDelegation(delAddr, valAddress, shares)
+	delegation := staking.NewDelegation(delAddr, valAddress, shares)
 	k.InsertVotingDelegationQueue(ctx, vendorID, postID, delegation, post.VoteEnd)
 
 	// perform delegation on chain
@@ -49,18 +49,18 @@ func (k Keeper) Undelegate(ctx sdk.Context, endTime time.Time, vendorID, postID,
 	return nil
 }
 
-func (k Keeper) getDelegation(ctx sdk.Context, endTime time.Time, vendorID, postID, stakeID uint64) stakingtypes.Delegation {
+func (k Keeper) getDelegation(ctx sdk.Context, endTime time.Time, vendorID, postID, stakeID uint64) staking.Delegation {
 	store := ctx.KVStore(k.storeKey)
 	key := types.VotingDelegationQueueKey(endTime, vendorID, postID, stakeID)
 	value := store.Get(key)
-	var delegation stakingtypes.Delegation
+	var delegation staking.Delegation
 	k.cdc.UnmarshalBinaryBare(value, &delegation)
 
 	return delegation
 }
 
 func (k Keeper) InsertVotingDelegationQueue(ctx sdk.Context, vendorID, postID uint64,
-	delegation stakingtypes.Delegation, completionTime time.Time) {
+	delegation staking.Delegation, completionTime time.Time) {
 	// get current stake index
 	store := ctx.KVStore(k.storeKey)
 	value := store.Get(types.KeyIndexStakeID)
@@ -85,14 +85,14 @@ func (k Keeper) RemoveFromVotingDelegationQueue(ctx sdk.Context, endTime time.Ti
 	store.Delete(key)
 }
 
-func (k Keeper) setVotingDelegationQueue(ctx sdk.Context, key []byte, delegation stakingtypes.Delegation) {
+func (k Keeper) setVotingDelegationQueue(ctx sdk.Context, key []byte, delegation staking.Delegation) {
 	store := ctx.KVStore(k.storeKey)
 	value := k.cdc.MustMarshalBinaryBare(&delegation)
 	store.Set(key, value)
 }
 
 func (k Keeper) IterateVotingDelegationQueue(ctx sdk.Context, endTime time.Time,
-	cb func(endTime time.Time, vendorID, postID, stakeID uint64, delegation stakingtypes.Delegation) (stop bool)) {
+	cb func(endTime time.Time, vendorID, postID, stakeID uint64, delegation staking.Delegation) (stop bool)) {
 
 	iterator := k.VotingDelegationQueueIterator(ctx, endTime)
 
@@ -101,7 +101,7 @@ func (k Keeper) IterateVotingDelegationQueue(ctx sdk.Context, endTime time.Time,
 		spew.Dump(iterator.Key())
 		endTime, vendorID, postID, stakeID := types.SplitVotingDelegationQueueKey(iterator.Key())
 		// spew.Dump("vendorID, postID, stakeID", vendorID, postID, stakeID)
-		var delegation stakingtypes.Delegation
+		var delegation staking.Delegation
 		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &delegation)
 
 		if cb(endTime, vendorID, postID, stakeID, delegation) {
