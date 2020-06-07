@@ -31,6 +31,9 @@ func EndBlocker(ctx sdk.Context, k Keeper) {
 		// undelegate from validator
 		k.Undelegate(ctx, endTime, vendorID, postID, stakeID)
 
+		// get staking reward
+		// add funds from reward pool
+
 		k.RemoveFromVotingDelegationQueue(ctx, endTime, vendorID, postID, stakeID)
 
 		ctx.EventManager().EmitEvent(

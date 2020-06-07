@@ -40,7 +40,7 @@ func (k Keeper) Delegate(ctx sdk.Context, vendorID, postID uint64, delAddr sdk.A
 
 func (k Keeper) Undelegate(ctx sdk.Context, endTime time.Time, vendorID, postID, stakeID uint64) error {
 	d := k.getDelegation(ctx, endTime, vendorID, postID, stakeID)
-	_, err := k.stakingKeeper.Unbond(ctx, d.DelegatorAddress, d.ValidatorAddress, d.Shares)
+	_, err := k.stakingKeeper.Undelegate(ctx, d.DelegatorAddress, d.ValidatorAddress, d.Shares)
 	if err != nil {
 		return err
 	}

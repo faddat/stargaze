@@ -1,6 +1,8 @@
 package types
 
 import (
+	"time"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	// stakingexported "github.com/cosmos/cosmos-sdk/x/staking/exported"
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
@@ -21,10 +23,9 @@ type StakingKeeper interface {
 		validator stakingtypes.Validator, subtractAccount bool) (newShares sdk.Dec, err error)
 
 	// GetValidator(ctx sdk.Context, valAddress sdk.ValAddress) (validator stakingexported.ValidatorI, found bool)
-
 	GetValidator(ctx sdk.Context, valAddress sdk.ValAddress) (validator stakingtypes.Validator, found bool)
-
 	Unbond(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress, shares sdk.Dec) (amount sdk.Int, err error)
+	Undelegate(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress, sharesAmount sdk.Dec) (time.Time, error)
 }
 
 // AccountKeeper defines the expected account keeper (noalias)
