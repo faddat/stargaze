@@ -36,11 +36,11 @@ func EndBlocker(ctx sdk.Context, k Keeper) {
 
 		// add funds from reward pool based on stake amount + time
 		// TODO: calculate amount from shares? ValidateUnbondAmount?
-		stakeAmount := delegation.Shares
-		post, found := k.GetPost(ctx, vendorID, postID)
-		if !found {
-			panic("post not found")
-		}
+		// stakeAmount := delegation.Shares
+		// post, found := k.GetPost(ctx, vendorID, postID)
+		// if !found {
+		// 	panic("post not found")
+		// }
 		// TODO: need delegation start time
 		// timeDelta :=
 
