@@ -26,6 +26,7 @@ func (k Keeper) Delegate(ctx sdk.Context, vendorID, postID uint64, delAddr sdk.A
 
 	// add delegation to voting delegation queue
 	shares := amount.Amount.ToDec()
+	// TODO: need to store delegation start time
 	delegation := staking.NewDelegation(delAddr, valAddress, shares)
 	k.InsertVotingDelegationQueue(ctx, vendorID, postID, delegation, post.VoteEnd)
 
