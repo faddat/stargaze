@@ -27,6 +27,7 @@ init:
 install: go.sum
 		go install -mod=readonly $(BUILD_FLAGS) ./cmd/staked
 		go install -mod=readonly $(BUILD_FLAGS) ./cmd/stakecli
+		go install -mod=readonly $(BUILD_FLAGS) ./cmd/ebrelayer
 
 start:
 	bin/staked start --pruning=nothing
@@ -34,6 +35,7 @@ start:
 build:
 		go build -o bin/staked ./cmd/staked
 		go build -o bin/stakecli ./cmd/stakecli
+		go build -o bin/ebrelayer ./cmd/ebrelayer
 
 go.sum: go.mod
 		@echo "--> Ensure dependencies have not been modified"
@@ -53,6 +55,7 @@ lint:
 build-linux: 
 	GOARCH=amd64 GOOS=linux go build -o bin/staked github.com/public-awesome/stakebird/cmd/staked
 	GOARCH=amd64 GOOS=linux  go build -o bin/stakecli github.com/public-awesome/stakebird/cmd/stakecli
+	GOARCH=amd64 GOOS=linux  go build -o bin/ebrelayer github.com/public-awesome/stakebird/cmd/ebrelayer
 
 docker-test: build-linux
 	docker build -f docker/Dockerfile.test -t rocketprotocol/stakebird-relayer-test:latest .
