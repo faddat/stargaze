@@ -4,6 +4,11 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/cosmos/cosmos-sdk/crypto/keyring"
+	"github.com/cosmos/cosmos-sdk/x/auth"
+	authclient "github.com/cosmos/cosmos-sdk/x/auth/client"
+	"github.com/spf13/viper"
 	"io"
 	"log"
 	"math/big"
@@ -13,7 +18,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/keys"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 	authtxb "github.com/cosmos/cosmos-sdk/x/auth/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	ethereum "github.com/ethereum/go-ethereum"
@@ -21,13 +25,12 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	ctypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/public-awesome/stakebird/cmd/ebrelayer/contract"
+	"github.com/public-awesome/stakebird/cmd/ebrelayer/txs"
+	"github.com/public-awesome/stakebird/cmd/ebrelayer/types"
+	ethbridge "github.com/public-awesome/stakebird/x/ethbridge/types"
 	amino "github.com/tendermint/go-amino"
 	tmLog "github.com/tendermint/tendermint/libs/log"
-
-	"github.com/cosmos/peggy/cmd/ebrelayer/contract"
-	"github.com/cosmos/peggy/cmd/ebrelayer/txs"
-	"github.com/cosmos/peggy/cmd/ebrelayer/types"
-	ethbridge "github.com/cosmos/peggy/x/ethbridge/types"
 )
 
 // TODO: Move relay functionality out of EthereumSub into a new Relayer parent struct
@@ -58,7 +61,7 @@ func NewEthereumSub(inBuf io.Reader, rpcURL string, cdc *codec.Codec, validatorM
 	// Load CLI context and Tx builder
 	cliCtx := LoadTendermintCLIContext(cdc, validatorAddress, validatorName, rpcURL, chainID)
 	txBldr := authtypes.NewTxBuilderFromCLI(nil).
-		WithTxEncoder(utils.GetTxEncoder(cdc)).
+		WithTxEncoder(auth.DefaultTxEncoder(cdc)).
 		WithChainID(chainID)
 
 	return EthereumSub{
@@ -76,8 +79,21 @@ func NewEthereumSub(inBuf io.Reader, rpcURL string, cdc *codec.Codec, validatorM
 
 // LoadValidatorCredentials : loads validator's credentials (address, moniker, and passphrase)
 func LoadValidatorCredentials(validatorFrom string, inBuf io.Reader) (sdk.ValAddress, string, error) {
+
+	homedir := viper.GetString(flags.FlagHome)
+	genOnly := viper.GetBool(flags.FlagGenerateOnly)
+	backend := viper.GetString(flags.FlagKeyringBackend)
+	if len(backend) == 0 {
+		backend = keyring.BackendMemory
+	}
+
+	keyring, err := newKeyringFromFlags(backend, homedir, inBuf, genOnly)
+	if err != nil {
+		panic(fmt.Errorf("couldn't acquire keyring: %v", err))
+	}
+
 	// Get the validator's name and account address using their moniker
-	validatorAccAddress, validatorName, err := sdkContext.GetFromFields(inBuf, validatorFrom, false)
+	validatorAccAddress, validatorName, err := sdkContext.GetFromFields(keyring, validatorFrom, false)
 	if err != nil {
 		return sdk.ValAddress{}, "", err
 	}
@@ -90,6 +106,13 @@ func LoadValidatorCredentials(validatorFrom string, inBuf io.Reader) (sdk.ValAdd
 	}
 
 	return validatorAddress, validatorName, nil
+}
+
+func newKeyringFromFlags(backend, homedir string, input io.Reader, genOnly bool) (keyring.Keyring, error) {
+	if genOnly {
+		return keyring.New(sdk.KeyringServiceName(), keyring.BackendMemory, homedir, input)
+	}
+	return keyring.New(sdk.KeyringServiceName(), backend, homedir, input)
 }
 
 // LoadTendermintCLIContext : loads CLI context for tendermint txs
@@ -107,7 +130,7 @@ func LoadTendermintCLIContext(appCodec *amino.Codec, validatorAddress sdk.ValAdd
 	cliCtx.SkipConfirm = true
 
 	// Confirm that the validator's address exists
-	accountRetriever := authtypes.NewAccountRetriever(cliCtx)
+	accountRetriever := authtypes.NewAccountRetriever(authclient.Codec, cliCtx)
 	err := accountRetriever.EnsureExists((sdk.AccAddress(validatorAddress)))
 	if err != nil {
 		log.Fatal(err)
