@@ -15,14 +15,14 @@ Stakebird is built as a sovereign proof-of-stake blockchain that aims to interop
 ### Run a local, single-node chain
 
 ```sh
-# install binaries
-make install
-
 # create keys
 make create-wallet
 
 # initialize chain
 make init
+
+# install binaries
+make install
 
 # run
 staked start
