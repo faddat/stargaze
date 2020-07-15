@@ -3,6 +3,7 @@ module github.com/public-awesome/stakebird
 go 1.14
 
 require (
+	github.com/TruStory/truchain v0.3.3
 	github.com/cosmos/cosmos-sdk v0.34.4-0.20200530180557-ba70f4d4dc2e
 	github.com/ethereum/go-ethereum v1.8.27
 	github.com/gogo/protobuf v1.3.1

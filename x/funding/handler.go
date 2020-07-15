@@ -33,7 +33,15 @@ func handleMsgBuy(ctx sdk.Context, k Keeper, msg types.MsgBuy) (*sdk.Result, err
 			sdkerrors.ErrInsufficientFunds, "can't transfer %s coins from sender to dao", denom)
 	}
 
-	err = mintNewToken(ctx, k, msg.Amount.Amount, msg.Sender)
+	tokenSupply := k.BankKeeper.GetSupply(ctx)
+	poolBalance := k.DistributionKeeper.GetFeePool(ctx).CommunityPool.AmountOf(lockCoin.Denom)
+	curve := GetBondingCurve()
+	toMint, err := curve.ToMint(lockCoin, tokenSupply, poolBalance)
+	if err != nil {
+		return nil, sdkerrors.Wrapf(
+			sdkerrors.ErrInsufficientFunds, "can't determine the number of tokens to mint from bonding curve")
+	}
+	err = mintNewToken(ctx, k, toMint, msg.Sender)
 	if err != nil {
 		return nil, sdkerrors.Wrapf(
 			sdkerrors.ErrInsufficientFunds, "can't mint new token from bonding curve")
@@ -52,11 +60,11 @@ func handleMsgBuy(ctx sdk.Context, k Keeper, msg types.MsgBuy) (*sdk.Result, err
 
 func mintNewToken(ctx sdk.Context, k Keeper, amount sdk.Int, sender sdk.AccAddress) error {
 	newCoin := sdk.NewCoin(types.Denom, amount)
-	err := k.SupplyKeeper.MintCoins(ctx, ModuleName, sdk.NewCoins(newCoin))
+	err := k.BankKeeper.MintCoins(ctx, ModuleName, sdk.NewCoins(newCoin))
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "can't mint %s", newCoin.Denom)
 	}
-	err = k.SupplyKeeper.SendCoinsFromModuleToAccount(ctx, ModuleName, sender, sdk.NewCoins(newCoin))
+	err = k.BankKeeper.SendCoinsFromModuleToAccount(ctx, ModuleName, sender, sdk.NewCoins(newCoin))
 	if err != nil {
 		return sdkerrors.Wrapf(
 			sdkerrors.ErrInsufficientFunds, "can't transfer %s coins from module account to sender", newCoin.Denom)

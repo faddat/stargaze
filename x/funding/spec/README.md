@@ -1,8 +1,16 @@
-# funding module specification
+# Funding Module Specification
 
 ## Abstract
 
-<!-- TODO: Create a abstract definition of what this module does, what functionality does it enable and how it can be used. -->
+This module provides the functionality of allowing anyone to buy FUELs using ATOMs using a bonding curve, similar to Bancor Protocol's.
+
+The module makes sure that the following interactions can be achieved.
+
+1. A token (FUEL) can be minted (bought) at any time according to a price set by the bonding curve.
+2. This price increases as token supply grows.
+3. The money (ATOM) paid for tokens is kept in a reserve pool.
+4. At any point in time, a token can be burned (sold) back to the contract, the the money can be redeemed from the reserve pool.
+
 
 ## Contents
 
