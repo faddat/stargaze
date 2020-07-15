@@ -36,7 +36,7 @@ func handleMsgBuy(ctx sdk.Context, k Keeper, msg types.MsgBuy) (*sdk.Result, err
 	tokenSupply := k.BankKeeper.GetSupply(ctx)
 	poolBalance := k.DistributionKeeper.GetFeePool(ctx).CommunityPool.AmountOf(lockCoin.Denom)
 	curve := GetBondingCurve()
-	toMint, err := curve.ToMint(lockCoin, tokenSupply, poolBalance)
+	toMint, err := curve.ToMint(lockCoin, tokenSupply.GetTotal().AmountOf(types.Denom), poolBalance.TruncateInt())
 	if err != nil {
 		return nil, sdkerrors.Wrapf(
 			sdkerrors.ErrInsufficientFunds, "can't determine the number of tokens to mint from bonding curve")
