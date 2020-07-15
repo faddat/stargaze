@@ -18,7 +18,7 @@ type ATOMCurve struct {
 func (c *ATOMCurve) ToMint(amount sdk.Coin, tokenSupply, poolBalance sdk.Int) (sdk.Int, error) {
 	temp := amount.Amount.Quo(poolBalance)
 	temp2 := temp.AddRaw(1)
-	temp3 := temp2.ToDec().Power(c.ReserveRatio.BigInt().Uint64())
+	temp3 := temp2.ToDec().Power(c.ReserveRatio.TruncateInt().Uint64())
 	temp4 := temp3.TruncateInt().SubRaw(1)
 	toMint := tokenSupply.Mul(temp4)
 
