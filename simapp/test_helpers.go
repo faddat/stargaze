@@ -51,7 +51,7 @@ var DefaultConsensusParams = &abci.ConsensusParams{
 func Setup(isCheckTx bool) *SimApp {
 	db := dbm.NewMemDB()
 	app := NewSimApp(log.NewNopLogger(), db, nil, true, map[int64]bool{},
-		DefaultNodeHome, 5, MakeEncodingConfig(), EmptyAppOptions{})
+		DefaultNodeHome, 5, MakeTestEncodingConfig(), EmptyAppOptions{})
 	if !isCheckTx {
 		// init chain must be called to stop deliverState from being nil
 		genesisState := NewDefaultGenesisState()
@@ -78,7 +78,7 @@ func Setup(isCheckTx bool) *SimApp {
 func SetupWithGenesisAccounts(genAccs []authtypes.GenesisAccount, balances ...banktypes.Balance) *SimApp {
 	db := dbm.NewMemDB()
 	app := NewSimApp(log.NewNopLogger(), db, nil, true, map[int64]bool{},
-		DefaultNodeHome, 0, MakeEncodingConfig(), EmptyAppOptions{})
+		DefaultNodeHome, 0, MakeTestEncodingConfig(), EmptyAppOptions{})
 
 	// initialize the chain with the passed in genesis accounts
 	genesisState := NewDefaultGenesisState()

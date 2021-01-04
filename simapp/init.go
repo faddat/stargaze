@@ -20,7 +20,7 @@ import (
 // SetupWithStakeDenom initializes a new SimApp. A Nop logger is set in SimApp.
 func SetupWithStakeDenom(isCheckTx bool, stakeDenom string) *SimApp {
 	db := dbm.NewMemDB()
-	config := MakeEncodingConfig()
+	config := MakeTestEncodingConfig()
 	app := NewSimApp(log.NewNopLogger(), db, nil, true, map[int64]bool{}, DefaultNodeHome, 5, config, EmptyAppOptions{})
 	if !isCheckTx {
 		// init chain must be called to stop deliverState from being nil
