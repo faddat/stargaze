@@ -55,11 +55,11 @@ func (k Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
 			upvotes = append(upvotes, upvote)
 			return false
 		})
-
-		if ctx.BlockTime().Before(post.CuratingEndTime) {
-			vpPair := types.VPPair{VendorID: post.VendorID, PostID: post.PostID}
-			curationQueue = append(curationQueue, vpPair)
-		}
+		return false
+	})
+	k.IterateCurrentQueue(ctx, func(post types.Post) bool {
+		vpPair := types.VPPair{VendorID: post.VendorID, PostID: post.PostID}
+		curationQueue = append(curationQueue, vpPair)
 		return false
 	})
 

@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/tendermint/tendermint/libs/log"
 
@@ -95,4 +96,27 @@ func (k Keeper) sendProtocolReward(ctx sdk.Context, account sdk.AccAddress, amt 
 	}
 
 	return nil
+}
+
+// IterateCurrentQueue ...
+func (k Keeper) IterateCurrentQueue(
+	ctx sdk.Context, cb func(post types.Post) (stop bool)) {
+	it := k.CurationQueueIterator(ctx, time.Now().Add(time.Hour*24*365*20))
+	defer it.Close()
+
+	for ; it.Valid(); it.Next() {
+		vps := types.VPPairs{}
+		k.cdc.MustUnmarshalBinaryBare(it.Value(), &vps)
+		for _, vp := range vps.Pairs {
+			post, found, err := k.GetPost(ctx, vp.VendorID, vp.PostID)
+			if err != nil {
+				// Do want to panic here because if a post doesn't exist for an upvote
+				// it means there's some kind of consensus failure, so halt the chain.
+				panic(err)
+			}
+			if found {
+				cb(post)
+			}
+		}
+	}
 }
